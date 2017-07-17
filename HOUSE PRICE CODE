@@ -1,0 +1,52 @@
+setwd("X:/KAGGLE/House Prices")
+
+options(max.print = 9999999)
+
+train <- read.csv("X:/KAGGLE/House Prices/train.csv")
+test <- read.csv("X:/KAGGLE/House Prices/test.csv")
+
+N_train <- train[,-81]
+N_test <- test[]
+
+SP <- as.data.frame(train[,81])
+colnames(SP)[1] <- "SalePrice"
+
+N_train["DATA_TYPE"] <- 1
+N_test["DATA_TYPE"] <- 0
+
+Data <- rbind(N_train,N_test)
+
+summary(Data)
+
+Data_F <- Data[,c(7,58,73:75)]
+Data_A <- Data[,-c(7,58,73:75)]
+Data_A[2593,58] <- 2010
+
+list = names(Data_F)
+for(i in 1:length(list))
+{
+  Data_F[,list[i]] <- ifelse(is.na(Data_F[,list[i]]),"MISSING",as.character(Data_F[,list[i]]))
+  Data_F[,list[i]] <- as.factor(Data_F[,list[i]])
+}
+
+F_Data <- cbind(Data_A,Data_F)
+
+library(mice)
+
+F_Data_M <- mice(F_Data, m = 1, nnet.MaxNWts = 4000)
+F_Data_M_C <- complete(F_Data_M, 1, include = FALSE)
+
+S_Train <- subset(F_Data_M_C, DATA_TYPE== 1)
+F_Test <- subset(F_Data_M_C, DATA_TYPE== 0)
+
+F_Train <- cbind(S_Train,SP)
+
+Final_Train <- F_Train[,-c(1,76)]
+Final_Test <- F_Test[,-c(1,76)]
+
+library(randomForest)
+
+RDF <- randomForest(SalePrice ~., data = Final_Train)   
+PREDICT <- predict(RDF,Final_Test)
+
+print(PREDICT)
