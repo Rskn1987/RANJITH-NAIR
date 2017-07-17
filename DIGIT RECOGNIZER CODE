@@ -1,0 +1,24 @@
+setwd("X:/KAGGLE/Digit Recognizer")
+train <- read.csv("X:/KAGGLE/Digit Recognizer/train.csv")
+options(max.print = 999999)
+train$label <- as.factor(train$label)
+
+str(train)
+
+library(randomForest)
+
+MOD_R <- randomForest(label~.,data = train)
+
+plot(MOD_R)
+
+TRF <- tuneRF(train[,-1], train[,1], stepFactor = 0.5, plot = TRUE, ntreeTry = 300, trace = TRUE, improve = 0.05)
+
+MOD_R_NEW <- randomForest(label~., data = train, ntree = 300, ntay = 56, importance = TRUE, proximity = TRUE)
+
+P1 <- predict(MOD_R_NEW,test)
+
+print(P1)
+
+Submission <- data.frame(P1)
+
+write.csv(Submission,"RN_Submssion.csv", row.names = TRUE)
